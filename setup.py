@@ -17,7 +17,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='gcloudwrap',
-    version='1.0.2',
+    version='1.0.3',
     description='wraps Google cloud client to facilitate deployment.',
     long_description=long_description,
     url='https://github.com/Parquery/gcloudwrap',
