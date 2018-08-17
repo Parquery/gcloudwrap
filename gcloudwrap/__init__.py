@@ -398,6 +398,18 @@ class SSH:
 
         return subprocess.call(cmd)
 
+    def check_call(self, command: List[str]) -> None:
+        """
+        calls the command on the instance and raises RuntimeError if the return code is not 0.
+
+        :param command: to be executed
+        :return:
+        """
+        retcode = self.call(command=command)
+
+        if retcode != 0:
+            raise RuntimeError("Failed to execute the command (return code {}): {}".format(retcode, command))
+
 
 class Operator:
     """

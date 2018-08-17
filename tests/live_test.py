@@ -10,7 +10,7 @@ import re
 import unittest
 import uuid
 import warnings
-from typing import Callable, Any
+from typing import Callable, Any, Optional  # pylint: disable=unused-import
 
 import gcloudwrap
 
@@ -57,6 +57,48 @@ class TestInstances(unittest.TestCase):
             gce.instances.insert(
                 name=instance, machine_type='f1-micro', service_account=TEST_GCLOUDWRAP_SERVICE_ACCOUNT)
             self.assertTrue(gce.instances.exists(name=instance))
+        finally:
+            if gce.instances.exists(name=instance):
+                LOGGER.info("Deleting the instance {} ...".format(instance))
+                gce.instances.delete(instance=instance)
+
+        self.assertFalse(gce.instances.exists(name=instance))
+
+    @ignore_resource_warnings
+    def test_ssh(self):
+        gce = gcloudwrap.Gce()
+        instance = "{}-{}".format(TEST_GCLOUDWRAP_PREFIX, uuid.uuid4())
+
+        self.assertFalse(gce.instances.exists(name=instance))
+
+        try:
+            LOGGER.info("Creating the instance {} ...".format(instance))
+            gce.instances.insert(
+                name=instance, machine_type='f1-micro', service_account=TEST_GCLOUDWRAP_SERVICE_ACCOUNT)
+
+            ssh = gce.instances.ssh(instance=instance, user="some-user")
+
+            # Command succeeds
+            retcode = ssh.call(command=["echo", "oi"])
+            self.assertEqual(0, retcode)
+
+            # Command fails
+            retcode = ssh.call(command=["cat", "/tmp/doesnt-exist-{}".format(uuid.uuid4())])
+            self.assertNotEqual(0, retcode)
+
+            # Command succeeds
+            ssh.check_call(command=["echo", "oi"])
+
+            # Command fails and raises a RuntimeError
+            runtime_error = None  # type: Optional[RuntimeError]
+            try:
+                ssh.check_call(command=["cat", "/tmp/doesnt-exist-{}".format(uuid.uuid4())])
+            except RuntimeError as err:
+                runtime_error = err
+
+            self.assertIsNotNone(runtime_error)
+            self.assertTrue(str(runtime_error).startswith("Failed to execute the command (return code 1): "))
+
         finally:
             if gce.instances.exists(name=instance):
                 LOGGER.info("Deleting the instance {} ...".format(instance))
@@ -284,7 +326,8 @@ class TestIntegration(unittest.TestCase):
 
             operator.mount_disk(device_name=device_name, path=pathlib.Path('/mnt/disks/persistency'))
 
-            ssh.call(command=['bash', '-c', 'echo hello > /mnt/disks/persistency/hello.txt'])
+            retcode = ssh.call(command=['bash', '-c', 'echo hello > /mnt/disks/persistency/hello.txt'])
+            assert retcode == 0
 
         finally:
             if gce.instances.exists(name=instance):
