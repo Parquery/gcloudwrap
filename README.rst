@@ -102,6 +102,8 @@ Finally, we authorize a public SSH key with the instance.
     public_ssh_key = pathlib.Path(
         '/some/path/to/ssh/id_rsa.pub').read_text()
 
+    gce = gcloudwrap.Gce()
+
     gce.addresses.insert(name=address)
     static_ip = gce.addresses.static_ip(
         address=address)
