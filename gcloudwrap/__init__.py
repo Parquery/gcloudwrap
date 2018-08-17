@@ -1379,7 +1379,7 @@ def _retrieve_defaults_with_cli(project: Optional[str] = None, region: Optional[
         # was: https://github.com/GoogleCloudPlatform/google-cloud-python/issues/1934
         if subprocess.call(['which', 'gcloud'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
             raise RuntimeError("Could not find gcloud CLI which is used to find out the default "
-                               "values of the project, region or zone.")
+                               "values of the project, region or zone. Is 'gcloud' on your path?")
 
         if project is None:
             cmd = ['gcloud', 'config', 'get-value', 'project', '--format', 'json']
