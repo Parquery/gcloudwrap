@@ -1,3 +1,7 @@
+1.0.2
+=====
+* Fixed readme usage section to include creation of a GCE instance
+
 1.0.1
 =====
 * Moved to github.com
