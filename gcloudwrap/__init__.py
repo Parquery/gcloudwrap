@@ -539,6 +539,22 @@ fi
                 device_name, path))
 
 
+class ServiceAccount:
+    """
+    represents a service account associated with an instance.
+
+    :ivar email: email identifying the service account
+    :vartype email: str
+
+    :ivar scopes: authorization scopes
+    :vartype scopes: List[str]
+    """
+
+    def __init__(self, email: str, scopes: List[str]) -> None:
+        self.email = email
+        self.scopes = scopes
+
+
 class Instances:
     """ wraps operations on Google cloud instances. """
 
@@ -565,7 +581,7 @@ class Instances:
     def insert(self,
                name: str,
                machine_type: Union[str, MachineType],
-               service_account: Optional[str] = None,
+               service_account: Optional[Union[str, ServiceAccount]] = None,
                image_family: str = "ubuntu-1604-lts",
                image_project: str = "ubuntu-os-cloud",
                address: Optional[str] = None,
@@ -647,7 +663,15 @@ class Instances:
         }
 
         if service_account is not None:
-            config['serviceAccounts'] = [{'email': service_account}]
+            if isinstance(service_account, str):
+                config['serviceAccounts'] = [{'email': service_account}]
+            elif isinstance(service_account, ServiceAccount):
+                assert service_account.email is not None, "Expected the service account to have a non-None email."
+
+                config['serviceAccounts'] = [{'email': service_account.email, 'scopes': service_account.scopes}]
+            else:
+                raise NotImplementedError("Unhandled service account {} of type {}".format(
+                    service_account, type(service_account)))
 
         if address is not None:
             config['networkInterfaces'][0]['accessConfigs'][0]['natIP'] = address  # type: ignore
