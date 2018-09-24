@@ -1,3 +1,7 @@
+1.0.4
+=====
+* Added ``ServiceAccount`` to ``instances.insert`` to allow for scope authorization
+
 1.0.3
 =====
 * Added ``check_call()`` to SSH
