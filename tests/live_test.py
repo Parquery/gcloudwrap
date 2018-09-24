@@ -65,6 +65,30 @@ class TestInstances(unittest.TestCase):
         self.assertFalse(gce.instances.exists(name=instance))
 
     @ignore_resource_warnings
+    def test_exists_create_with_scopes_and_delete(self):  # pylint: disable=invalid-name
+        gce = gcloudwrap.Gce()
+        instance = "{}-{}".format(TEST_GCLOUDWRAP_PREFIX, uuid.uuid4())
+
+        self.assertFalse(gce.instances.exists(name=instance))
+
+        try:
+            service_account = gcloudwrap.ServiceAccount(
+                email=TEST_GCLOUDWRAP_SERVICE_ACCOUNT, scopes=['https://www.googleapis.com/auth/devstorage.read_only'])
+
+            LOGGER.info("Creating the instance {} with service account {} ...".format(
+                instance, service_account.__dict__))
+
+            gce.instances.insert(name=instance, machine_type='f1-micro', service_account=service_account)
+
+            self.assertTrue(gce.instances.exists(name=instance))
+        finally:
+            if gce.instances.exists(name=instance):
+                LOGGER.info("Deleting the instance {} ...".format(instance))
+                gce.instances.delete(instance=instance)
+
+        self.assertFalse(gce.instances.exists(name=instance))
+
+    @ignore_resource_warnings
     def test_ssh(self):
         gce = gcloudwrap.Gce()
         instance = "{}-{}".format(TEST_GCLOUDWRAP_PREFIX, uuid.uuid4())
