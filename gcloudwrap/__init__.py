@@ -18,7 +18,7 @@ import shlex
 import subprocess
 import time
 import urllib.parse
-from typing import Optional, Any, Tuple, List, Dict, MutableMapping, Union, Callable
+from typing import Optional, Any, Tuple, List, Dict, MutableMapping, Union, Callable, Mapping, Sequence
 
 import collections
 import googleapiclient.discovery
@@ -301,7 +301,7 @@ def ssh_keys_from_file(path: Union[str, pathlib.Path], default_user: str) -> Lis
 class Metadata:
     """ wraps operations on the instance meta-data. """
 
-    def __init__(self, fingerprint: str, items: Optional[List[Dict[str, str]]] = None) -> None:
+    def __init__(self, fingerprint: str, items: Optional[Sequence[Mapping[str, str]]] = None) -> None:
         self.fingerprint = fingerprint
 
         self.items = collections.OrderedDict()  # type: MutableMapping[str, str]
@@ -311,7 +311,7 @@ class Metadata:
                 value = keyval["value"]
                 self.items[key] = value
 
-    def set_ssh_keys(self, keys: List[SSHKey]) -> None:
+    def set_ssh_keys(self, keys: Sequence[SSHKey]) -> None:
         """
         sets the SSH keys in the meta-data record.
 
@@ -352,7 +352,7 @@ class Metadata:
 class Tags:
     """ represents instance tags. """
 
-    def __init__(self, items: List[str], fingerprint: str) -> None:
+    def __init__(self, items: Sequence[str], fingerprint: str) -> None:
         self.items = set(items)
         self.fingerprint = fingerprint
 
@@ -375,7 +375,7 @@ class SSH:
         self.instance = instance
         self.compute = compute
 
-    def call(self, command: List[str]) -> int:
+    def call(self, command: Sequence[str]) -> int:
         """
         calls the command on the instance.
 
@@ -398,7 +398,7 @@ class SSH:
 
         return subprocess.call(cmd)
 
-    def check_call(self, command: List[str]) -> None:
+    def check_call(self, command: Sequence[str]) -> None:
         """
         calls the command on the instance and raises RuntimeError if the return code is not 0.
 
@@ -416,7 +416,7 @@ class Operator:
     executes deployment operations on a running instance.
     """
 
-    def __init__(self, call_fn: Callable[[List[str]], int]) -> None:
+    def __init__(self, call_fn: Callable[[Sequence[str]], int]) -> None:
         """
 
         :param call_fn:
@@ -550,9 +550,9 @@ class ServiceAccount:
     :vartype scopes: List[str]
     """
 
-    def __init__(self, email: str, scopes: List[str]) -> None:
+    def __init__(self, email: str, scopes: Sequence[str]) -> None:
         self.email = email
-        self.scopes = scopes
+        self.scopes = scopes[:]
 
 
 class Instances:
@@ -1040,7 +1040,7 @@ class Disks:
                disk_type: Optional[str] = None,
                description: Optional[str] = None,
                size_gb: Optional[int] = None,
-               labels: Dict[str, str] = None,
+               labels: Mapping[str, str] = None,
                request_id: Optional[int] = None,
                wait: bool = True) -> Optional[ZoneOperation]:
         """
