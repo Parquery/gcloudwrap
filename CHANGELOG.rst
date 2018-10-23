@@ -1,3 +1,7 @@
+1.0.5
+=====
+* Replaced mutable argument types with immutable ones where appropriate
+
 1.0.4
 =====
 * Added ``ServiceAccount`` to ``instances.insert`` to allow for scope authorization
